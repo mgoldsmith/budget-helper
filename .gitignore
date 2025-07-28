@@ -1,6 +1,7 @@
 # Stuff that we add
 
 statements/
+.DS_Store
 
 # Boiler plate gitignore follows
 
