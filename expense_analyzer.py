@@ -4,6 +4,7 @@ Bank Statement Expense Analyzer
 Reads CSV bank statements and categorizes expenses with visualization
 """
 
+import argparse
 import csv
 import os
 import re
@@ -290,10 +291,60 @@ class ExpenseAnalyzer:
         # Print uncategorized
         self.print_uncategorized()
 
+    def audit_categories(self):
+        """Print all categories with their transactions for auditing"""
+        print("Starting bank statement analysis...")
+        
+        # Read CSV files
+        self.read_csv_files()
+        print(f"Loaded {len(self.transactions)} transactions")
+        
+        # Categorize transactions
+        self.categorize_transactions()
+        
+        print("\n" + "="*80)
+        print("CATEGORY AUDIT")
+        print("="*80)
+        
+        # Print each category with its transactions
+        for category, transactions in sorted(self.categories.items()):
+            print(f"\n{category.replace('_', ' ').upper()}:")
+            print("-" * 40)
+            
+            total = sum(abs(t['amount']) for t in transactions if t['amount'] < 0)
+            print(f"Total: €{total:.2f} ({len(transactions)} transactions)")
+            print()
+            
+            for transaction in transactions:
+                if transaction['amount'] < 0:  # Only show expenses
+                    print(f"  {transaction['date']} | €{abs(transaction['amount']):>7.2f} | {transaction['beneficiary'][:30]:<30} | {transaction['description'][:40]}")
+        
+        # Print uncategorized
+        if self.uncategorized:
+            print(f"\nUNCATEGORIZED:")
+            print("-" * 40)
+            uncategorized_expenses = [t for t in self.uncategorized if t['amount'] < 0]
+            total = sum(abs(t['amount']) for t in uncategorized_expenses)
+            print(f"Total: €{total:.2f} ({len(uncategorized_expenses)} transactions)")
+            print()
+            
+            for transaction in uncategorized_expenses:
+                print(f"  {transaction['date']} | €{abs(transaction['amount']):>7.2f} | {transaction['beneficiary'][:30]:<30} | {transaction['description'][:40]}")
+
 
 def main():
+    parser = argparse.ArgumentParser(description='Analyze bank statement expenses')
+    parser.add_argument('--audit-categories', action='store_true', 
+                        help='Print categories and their contents instead of creating pie chart')
+    
+    args = parser.parse_args()
+    
     analyzer = ExpenseAnalyzer()
-    analyzer.run_analysis()
+    
+    if args.audit_categories:
+        analyzer.audit_categories()
+    else:
+        analyzer.run_analysis()
 
 
 if __name__ == "__main__":
