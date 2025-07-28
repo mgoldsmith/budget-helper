@@ -10,6 +10,7 @@ import os
 import re
 from collections import defaultdict
 from decimal import Decimal
+from datetime import datetime
 import matplotlib.pyplot as plt
 import matplotlib.patheffects as path_effects
 
@@ -19,6 +20,7 @@ class ExpenseAnalyzer:
         self.transactions = []
         self.categories = defaultdict(list)
         self.uncategorized = []
+        self.monthly_transactions = defaultdict(list)
         
         # Category mapping based on keywords in German/English
         self.category_keywords = {
@@ -122,6 +124,22 @@ class ExpenseAnalyzer:
         except:
             return Decimal('0')
 
+    def parse_date(self, date_str):
+        """Parse German date format DD.MM.YY to datetime and return YYYY-MM format"""
+        try:
+            # Parse DD.MM.YY format
+            date_obj = datetime.strptime(date_str, '%d.%m.%y')
+            return date_obj.strftime('%Y-%m')
+        except:
+            return None
+
+    def group_transactions_by_month(self):
+        """Group transactions by year-month"""
+        for transaction in self.transactions:
+            month_key = self.parse_date(transaction['date'])
+            if month_key:
+                self.monthly_transactions[month_key].append(transaction)
+
     def categorize_transactions(self):
         """Categorize transactions based on keywords"""
         for transaction in self.transactions:
@@ -131,6 +149,21 @@ class ExpenseAnalyzer:
                 self.categories[category].append(transaction)
             else:
                 self.uncategorized.append(transaction)
+
+    def categorize_monthly_transactions(self, transactions):
+        """Categorize a specific list of transactions"""
+        monthly_categories = defaultdict(list)
+        monthly_uncategorized = []
+        
+        for transaction in transactions:
+            category = self.classify_transaction(transaction)
+            
+            if category:
+                monthly_categories[category].append(transaction)
+            else:
+                monthly_uncategorized.append(transaction)
+        
+        return monthly_categories, monthly_uncategorized
 
     def classify_transaction(self, transaction):
         """Classify a single transaction into a category"""
@@ -160,7 +193,18 @@ class ExpenseAnalyzer:
         
         return category_totals
 
-    def create_expense_chart(self, category_totals):
+    def calculate_monthly_category_totals(self, monthly_categories):
+        """Calculate category totals for a specific month's data"""
+        category_totals = {}
+        
+        for category, transactions in monthly_categories.items():
+            total = sum(t['amount'] for t in transactions if t['amount'] < 0)
+            if total < 0:  # Only include categories with expenses
+                category_totals[category] = float(abs(total))
+        
+        return category_totals
+
+    def create_expense_chart(self, category_totals, month=None):
         """Create a pie chart of expense categories"""
         if not category_totals:
             print("No expenses to chart")
@@ -218,7 +262,8 @@ class ExpenseAnalyzer:
                   bbox_to_anchor=(1, 0, 0.5, 1),
                   fontsize=10)
         
-        plt.title('Expense Breakdown by Category', fontsize=16, fontweight='bold', pad=20)
+        title = f'Expense Breakdown by Category - {month}' if month else 'Expense Breakdown by Category'
+        plt.title(title, fontsize=16, fontweight='bold', pad=20)
         plt.axis('equal')
         
         # Add total at bottom
@@ -226,13 +271,16 @@ class ExpenseAnalyzer:
                    ha='center', fontsize=12, fontweight='bold')
         
         plt.tight_layout()
-        plt.savefig('expense_breakdown.png', dpi=300, bbox_inches='tight')
+        filename = f'expense_breakdown_{month}.png' if month else 'expense_breakdown.png'
+        plt.savefig(filename, dpi=300, bbox_inches='tight')
         plt.show()
+        print(f"Chart saved as {filename}")
 
-    def print_summary(self, category_totals):
+    def print_summary(self, category_totals, month=None):
         """Print summary of expenses by category"""
+        title = f"EXPENSE SUMMARY BY CATEGORY - {month}" if month else "EXPENSE SUMMARY BY CATEGORY"
         print("\n" + "="*50)
-        print("EXPENSE SUMMARY BY CATEGORY")
+        print(title)
         print("="*50)
         
         total_expenses = sum(category_totals.values())
@@ -267,29 +315,64 @@ class ExpenseAnalyzer:
             print(f"Type: {transaction['transaction_type']}")
             print("-" * 80)
 
+    def print_monthly_uncategorized(self, uncategorized_transactions, month):
+        """Print uncategorized transactions for a specific month"""
+        print(f"\n{'='*50}")
+        print(f"UNCATEGORIZED TRANSACTIONS - {month}")
+        print(f"{'='*50}")
+        print(f"These transactions couldn't be confidently categorized:")
+        print()
+        
+        # Only show expenses (negative amounts)
+        uncategorized_expenses = [t for t in uncategorized_transactions if t['amount'] < 0]
+        
+        for transaction in uncategorized_expenses:
+            print(f"Date: {transaction['date']}")
+            print(f"Amount: €{transaction['amount']}")
+            print(f"Description: {transaction['description']}")
+            print(f"Beneficiary: {transaction['beneficiary']}")
+            print(f"Type: {transaction['transaction_type']}")
+            print("-" * 50)
+
     def run_analysis(self):
-        """Run the complete expense analysis"""
+        """Run the complete expense analysis by month"""
         print("Starting bank statement analysis...")
         
         # Read CSV files
         self.read_csv_files()
         print(f"Loaded {len(self.transactions)} transactions")
         
-        # Categorize transactions
-        self.categorize_transactions()
+        # Group transactions by month
+        self.group_transactions_by_month()
+        print(f"Found data for {len(self.monthly_transactions)} months")
         
-        # Calculate totals
-        category_totals = self.calculate_category_totals()
-        
-        # Print summary
-        self.print_summary(category_totals)
-        
-        # Create chart
-        if category_totals:
-            self.create_expense_chart(category_totals)
-        
-        # Print uncategorized
-        self.print_uncategorized()
+        # Process each month separately
+        for month in sorted(self.monthly_transactions.keys()):
+            print(f"\n{'='*60}")
+            print(f"Processing {month}")
+            print(f"{'='*60}")
+            
+            month_transactions = self.monthly_transactions[month]
+            print(f"Transactions for {month}: {len(month_transactions)}")
+            
+            # Categorize monthly transactions
+            monthly_categories, monthly_uncategorized = self.categorize_monthly_transactions(month_transactions)
+            
+            # Calculate monthly totals
+            monthly_category_totals = self.calculate_monthly_category_totals(monthly_categories)
+            
+            # Print monthly summary
+            if monthly_category_totals:
+                self.print_summary(monthly_category_totals, month)
+                
+                # Create monthly chart
+                self.create_expense_chart(monthly_category_totals, month)
+            else:
+                print(f"No expenses found for {month}")
+            
+            # Print uncategorized for this month
+            if monthly_uncategorized:
+                self.print_monthly_uncategorized(monthly_uncategorized, month)
 
     def audit_categories(self):
         """Print all categories with their transactions for auditing"""
