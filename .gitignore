@@ -1,3 +1,9 @@
+# Stuff that we add
+
+statements/
+
+# Boiler plate gitignore follows
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
