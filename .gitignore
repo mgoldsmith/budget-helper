@@ -2,7 +2,7 @@
 
 statements/
 .DS_Store
-expense_breakdown.png
+expense_breakdown*.png
 
 # Boiler plate gitignore follows
 
