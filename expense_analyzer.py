@@ -34,7 +34,7 @@ class ExpenseAnalyzer:
                 "kranken", "health", "medical", "blanka leeker", "techniker krankenkasse"
             ],
             "rent": [
-                "miete", "rent", "wohnung", "apartment", "sev pettenkoferstrasse"
+                "miete", "rent", "wohnung", "apartment", "sev petten"
             ],
             "utilities": [
                 "vattenfall", "strom", "gas", "water", "wasser", "heating", "heizung",
