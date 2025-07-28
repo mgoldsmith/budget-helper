@@ -29,7 +29,7 @@ class ExpenseAnalyzer:
             "eating_out": [
                 "restaurant", "pizza", "burger", "wolt", "lieferando", "deliveroo",
                 "mcdonalds", "kfc", "subway", "doner", "döner", "cafe",
-                "bar", "pub", "borgor", "brgrs", "salami social", "nguyen",
+                "bar", "pub", "borgor", "brgrs", "salami social", "nguyen", "nihat dincoglu",
             ],
             "household_items": [
                 "dm drogerie", "rossmann"
