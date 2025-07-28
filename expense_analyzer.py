@@ -30,18 +30,17 @@ class ExpenseAnalyzer:
                 "mcdonalds", "kfc", "subway", "asia", "doner", "döner", "cafe",
                 "bar", "pub", "borgor", "brgrs", "salami social"
             ],
+            "household_items": [
+                "dm drogerie", "rossmann"
+            ],
             "pharmacy_health": [
-                "dm drogerie", "rossmann", "apotheke", "pharmacy", "arzt", "doctor",
+                "apotheke", "pharmacy", "arzt", "doctor",
                 "kranken", "health", "medical", "blanka leeker", "techniker krankenkasse"
             ],
-            "rent": [
-                "miete", "rent", "wohnung", "apartment", "sev petten"
-            ],
-            "utilities": [
+            "rent_and_utilities": [
+                "miete", "rent", "wohnung", "apartment", "sev petten",
                 "vattenfall", "strom", "gas", "water", "wasser", "heating", "heizung",
-                "electricity", "energie"
-            ],
-            "internet_phone": [
+                "electricity", "energie",
                 "telekom", "vodafone", "o2", "internet", "telefon", "phone", "mobile",
                 "1+1 telecom"
             ],
@@ -66,10 +65,6 @@ class ExpenseAnalyzer:
             "bank_fees": [
                 "entgeltabschluss", "gebühr", "fee", "bank charge", "commission"
             ],
-            "income": [
-                "gutschrift", "gehalt", "salary", "lohn", "wise", 
-                "income", "transfer"
-            ]
         }
 
     def read_csv_files(self):
@@ -114,7 +109,7 @@ class ExpenseAnalyzer:
                     'raw_row': row
                 }
                 
-                if transaction['amount'] != 0:  # Skip zero amounts
+                if transaction['amount'] < 0:  # Skip zero and positive amounts
                     self.transactions.append(transaction)
 
     def parse_amount(self, amount_str):
