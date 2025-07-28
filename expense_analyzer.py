@@ -10,6 +10,7 @@ import re
 from collections import defaultdict
 from decimal import Decimal
 import matplotlib.pyplot as plt
+import matplotlib.patheffects as path_effects
 
 class ExpenseAnalyzer:
     def __init__(self, statements_folder="statements"):
@@ -27,7 +28,7 @@ class ExpenseAnalyzer:
             "eating_out": [
                 "restaurant", "pizza", "burger", "wolt", "lieferando", "deliveroo",
                 "mcdonalds", "kfc", "subway", "asia", "doner", "döner", "cafe",
-                "bar", "pub", "borgor", "brgrs", "social club"
+                "bar", "pub", "borgor", "brgrs", "salami social"
             ],
             "pharmacy_health": [
                 "dm drogerie", "rossmann", "apotheke", "pharmacy", "arzt", "doctor",
@@ -177,30 +178,57 @@ class ExpenseAnalyzer:
         
         categories = [cat.replace('_', ' ').title() for cat, _ in sorted_categories]
         amounts = [amount for _, amount in sorted_categories]
+        total_expenses = sum(amounts)
         
-        # Create pie chart
-        plt.figure(figsize=(12, 8))
+        # Create pie chart with legend instead of labels to avoid overlap
+        plt.figure(figsize=(14, 8))
         colors = plt.cm.Set3(range(len(categories)))
+        
+        # Custom autopct function that only shows percentages for slices > 3%
+        def make_autopct(values):
+            def my_autopct(pct):
+                if pct >= 3.0:  # Only show text for slices >= 3%
+                    absolute = int(pct/100.*sum(values))
+                    return f'€{absolute}\n({pct:.1f}%)'
+                return ''
+            return my_autopct
         
         wedges, texts, autotexts = plt.pie(
             amounts, 
-            labels=categories,
-            autopct=lambda pct: f'€{pct*sum(amounts)/100:.0f}\n({pct:.1f}%)',
+            labels=None,  # Remove direct labels to avoid crowding
+            autopct=make_autopct(amounts),
             startangle=90,
-            colors=colors
+            colors=colors,
+            pctdistance=0.85  # Move percentage text closer to center
         )
         
-        # Improve text readability
+        # Improve text readability for displayed percentages
         for autotext in autotexts:
-            autotext.set_color('black')
-            autotext.set_fontsize(9)
+            autotext.set_color('white')
+            autotext.set_fontsize(10)
             autotext.set_weight('bold')
+            autotext.set_ha('center')
+            # Add black outline for better visibility on light backgrounds
+            autotext.set_path_effects([
+                path_effects.withStroke(linewidth=3, foreground='black')
+            ])
+        
+        # Create legend with amounts and percentages
+        legend_labels = []
+        for cat, amount in zip(categories, amounts):
+            percentage = (amount / total_expenses) * 100
+            legend_labels.append(f'{cat}: €{amount:.0f} ({percentage:.1f}%)')
+        
+        plt.legend(wedges, legend_labels, 
+                  title="Categories", 
+                  loc="center left", 
+                  bbox_to_anchor=(1, 0, 0.5, 1),
+                  fontsize=10)
         
         plt.title('Expense Breakdown by Category', fontsize=16, fontweight='bold', pad=20)
         plt.axis('equal')
         
         # Add total at bottom
-        total_expenses = sum(amounts)
         plt.figtext(0.5, 0.02, f'Total Expenses: €{total_expenses:.2f}', 
                    ha='center', fontsize=12, fontweight='bold')
         
