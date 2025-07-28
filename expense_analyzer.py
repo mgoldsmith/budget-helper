@@ -23,12 +23,12 @@ class ExpenseAnalyzer:
         self.category_keywords = {
             "groceries": [
                 "edeka", "rewe", "netto", "lidl", "aldi", "kaufland", "penny",
-                "supermarket", "grocery", "lebensmittel"
+                "supermarket", "grocery", "lebensmittel", "go asia",
             ],
             "eating_out": [
                 "restaurant", "pizza", "burger", "wolt", "lieferando", "deliveroo",
-                "mcdonalds", "kfc", "subway", "asia", "doner", "döner", "cafe",
-                "bar", "pub", "borgor", "brgrs", "salami social"
+                "mcdonalds", "kfc", "subway", "doner", "döner", "cafe",
+                "bar", "pub", "borgor", "brgrs", "salami social", "nguyen",
             ],
             "household_items": [
                 "dm drogerie", "rossmann"
@@ -48,15 +48,9 @@ class ExpenseAnalyzer:
                 "bvg", "deutsche bahn", "db", "taxi", "uber", "lyft", "benzin",
                 "petrol", "gas station", "tankstelle", "mvg", "transport"
             ],
-            "insurance": [
-                "versicherung", "insurance", "getsafe", "allianz", "axa"
-            ],
-            "shopping": [
-                "amazon", "zalando", "otto", "shop", "store", "koro", "online"
-            ],
             "pet_care": [
                 "fressnapf", "tierarzt", "veterinary", "pet", "dog", "cat",
-                "hundesteuer", "tierbedarf"
+                "hundesteuer", "tierbedarf", "drobeck", "getsafe",
             ],
             "entertainment": [
                 "kino", "cinema", "spotify", "netflix", "concert", "ticket",
@@ -64,6 +58,9 @@ class ExpenseAnalyzer:
             ],
             "bank_fees": [
                 "entgeltabschluss", "gebühr", "fee", "bank charge", "commission"
+            ],
+            "shopping": [
+                "amazon", "zalando", "otto", "shop", "store", "koro", "online"
             ],
         }
 
