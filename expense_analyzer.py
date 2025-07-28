@@ -67,8 +67,8 @@ class ExpenseAnalyzer:
                 "entgeltabschluss", "gebühr", "fee", "bank charge", "commission"
             ],
             "income": [
-                "gutschrift", "gehalt", "salary", "lohn", "wise", "nicole mc duffie",
-                "matthew goldsmith", "income", "transfer"
+                "gutschrift", "gehalt", "salary", "lohn", "wise", 
+                "income", "transfer"
             ]
         }
 
