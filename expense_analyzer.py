@@ -14,6 +14,10 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 import matplotlib.patheffects as path_effects
 
+def transaction_text(transaction):
+    """Combine description, beneficiary, and type for keyword matching"""
+    return transaction['description'].lower() + ' ' + transaction['beneficiary'].lower() + ' ' + transaction['transaction_type'].lower()
+
 class ExpenseAnalyzer:
     def __init__(self, statements_folder="statements"):
         self.statements_folder = statements_folder
@@ -21,6 +25,9 @@ class ExpenseAnalyzer:
         self.categories = defaultdict(list)
         self.uncategorized = []
         self.monthly_transactions = defaultdict(list)
+
+        # Keywords for end of month transactions. If they're detected in the first 7 days of a month, they'll be moved to the 25th of the previous month.
+        self.end_of_month_keywords = ["sev petten"]
         
         # Category mapping based on keywords in German/English
         self.category_keywords = {
@@ -133,12 +140,33 @@ class ExpenseAnalyzer:
         except:
             return None
 
+    def adjust_date_if_necessary(self, transaction):
+        """Adjust date to 25th of previous month if transaction is unique by month"""
+        needs_adjustment = False
+        for keyword in self.end_of_month_keywords:
+            if keyword.lower() in transaction_text(transaction):
+                needs_adjustment = True
+                break
+        if not needs_adjustment:
+            return
+
+        date = datetime.strptime(transaction['date'], '%d.%m.%y')
+        if date is None:
+            raise ValueError(f"No valid date found in transaction: {transaction}")
+        
+        # Check if transaction is in the first 7 days of the month
+        if date.day <= 7:
+            newdate = date.replace(day=25, month=date.month - 1 if date.month > 1 else 12)
+            transaction['date'] = newdate.strftime('%d.%m.%y')
+
     def group_transactions_by_month(self):
         """Group transactions by year-month"""
         for transaction in self.transactions:
+            self.adjust_date_if_necessary(transaction)
             month_key = self.parse_date(transaction['date'])
-            if month_key:
-                self.monthly_transactions[month_key].append(transaction)
+            if month_key == None:
+                raise ValueError(f"No valid date found in transaction: {transaction}")
+            self.monthly_transactions[month_key].append(transaction)
 
     def categorize_transactions(self):
         """Categorize transactions based on keywords"""
@@ -168,11 +196,7 @@ class ExpenseAnalyzer:
     def classify_transaction(self, transaction):
         """Classify a single transaction into a category"""
         # Combine description and beneficiary for keyword matching
-        text_to_check = (
-            transaction['description'].lower() + ' ' + 
-            transaction['beneficiary'].lower() + ' ' +
-            transaction['transaction_type'].lower()
-        )
+        text_to_check = transaction_text(transaction)
         
         # Check each category
         for category, keywords in self.category_keywords.items():
