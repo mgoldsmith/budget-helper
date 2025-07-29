@@ -156,7 +156,11 @@ class ExpenseAnalyzer:
         
         # Check if transaction is in the first 7 days of the month
         if date.day <= 7:
-            newdate = date.replace(day=25, month=date.month - 1 if date.month > 1 else 12)
+            newdate = None
+            if date.month == 1:
+                newdate = date.replace(day=25, month=12, year=date.year - 1)
+            else:
+                newdate = date.replace(day=25, month=date.month - 1)
             transaction['date'] = newdate.strftime('%d.%m.%y')
 
     def group_transactions_by_month(self):
