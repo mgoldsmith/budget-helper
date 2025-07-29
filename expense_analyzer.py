@@ -22,12 +22,6 @@ class ExpenseAnalyzer:
         self.uncategorized = []
         self.monthly_transactions = defaultdict(list)
         
-        # Monthly recurring expenses - only one per month will be counted
-        # If multiple found in one month, excess will be moved to adjacent months
-        self.monthly_recurring_keywords = {
-            "rent": ["miete", "rent", "wohnung", "apartment", "sev petten"],
-        }
-        
         # Category mapping based on keywords in German/English
         self.category_keywords = {
             "groceries": [
@@ -45,6 +39,13 @@ class ExpenseAnalyzer:
             "pharmacy_health": [
                 "apotheke", "pharmacy", "arzt", "doctor",
                 "kranken", "health", "medical", "blanka leeker", "techniker krankenkasse"
+            ],
+            "rent_and_utilities": [
+                "miete", "rent", "wohnung", "apartment", "sev petten",
+                "vattenfall", "strom", "gas", "water", "wasser", "heating", "heizung",
+                "electricity", "energie",
+                "telekom", "vodafone", "o2", "internet", "telefon", "phone", "mobile",
+                "1+1 telecom"
             ],
             "transport": [
                 "bvg", "deutsche bahn", "db", "taxi", "uber", "lyft", "benzin",
@@ -173,13 +174,7 @@ class ExpenseAnalyzer:
             transaction['transaction_type'].lower()
         )
         
-        # First check monthly recurring categories
-        for category, keywords in self.monthly_recurring_keywords.items():
-            for keyword in keywords:
-                if keyword.lower() in text_to_check:
-                    return category
-        
-        # Then check regular categories
+        # Check each category
         for category, keywords in self.category_keywords.items():
             for keyword in keywords:
                 if keyword.lower() in text_to_check:
@@ -339,103 +334,6 @@ class ExpenseAnalyzer:
             print(f"Type: {transaction['transaction_type']}")
             print("-" * 50)
 
-    def get_day_of_month(self, date_str):
-        """Extract day of month from German date format DD.MM.YY"""
-        try:
-            return int(date_str.split('.')[0])
-        except:
-            return 15  # Default to middle of month if parsing fails
-    
-    def get_previous_month(self, month_str):
-        """Get the previous month string in YYYY-MM format"""
-        try:
-            year, month = month_str.split('-')
-            year, month = int(year), int(month)
-            if month == 1:
-                return f"{year-1}-12"
-            else:
-                return f"{year}-{month-1:02d}"
-        except:
-            return None
-    
-    def redistribute_monthly_recurring(self):
-        """Redistribute monthly recurring expenses so each month has only one of each type"""
-        # First, collect all monthly recurring transactions by category and month
-        monthly_recurring_by_category = defaultdict(lambda: defaultdict(list))
-        
-        for month, transactions in self.monthly_transactions.items():
-            for transaction in transactions:
-                category = self.classify_transaction(transaction)
-                if category in self.monthly_recurring_keywords:
-                    monthly_recurring_by_category[category][month].append(transaction)
-        
-        # For each recurring category, redistribute excess transactions
-        for category, months_data in monthly_recurring_by_category.items():
-            # Get all months that have data
-            all_months = sorted(self.monthly_transactions.keys())
-            
-            # Find months with excess transactions (more than 1)
-            for month, transactions in list(months_data.items()):
-                if len(transactions) > 1:
-                    # Sort transactions by day of month to handle them in order
-                    transactions_with_day = [(tx, self.get_day_of_month(tx['date'])) for tx in transactions]
-                    transactions_with_day.sort(key=lambda x: x[1])
-                    
-                    # Keep the transaction closest to middle/end of month
-                    # Move early-month transactions to previous month (they're likely for previous month)
-                    keep_transaction = None
-                    redistribute_transactions = []
-                    
-                    for tx, day in transactions_with_day:
-                        if day <= 7:  # Early in month - likely for previous month
-                            redistribute_transactions.append((tx, 'previous'))
-                        elif keep_transaction is None:
-                            keep_transaction = tx  # Keep first non-early transaction
-                        else:
-                            redistribute_transactions.append((tx, 'next'))
-                    
-                    # If all transactions are early, keep the last one
-                    if keep_transaction is None and redistribute_transactions:
-                        keep_transaction = redistribute_transactions.pop()[0]
-                    
-                    # Remove redistribute transactions from original month
-                    for tx, _ in redistribute_transactions:
-                        self.monthly_transactions[month].remove(tx)
-                    
-                    # Redistribute transactions
-                    for tx, direction in redistribute_transactions:
-                        if direction == 'previous':
-                            target_month = self.get_previous_month(month)
-                            if target_month and target_month in all_months:
-                                # Check if target month already has this expense type
-                                target_has_expense = any(
-                                    self.classify_transaction(t) == category 
-                                    for t in self.monthly_transactions[target_month]
-                                )
-                                if not target_has_expense:
-                                    self.monthly_transactions[target_month].append(tx)
-                                    print(f"Redistributed {category} payment from {month} to {target_month} (early payment for previous month)")
-                                    continue
-                        
-                        # If can't place in previous month, find any month without this expense
-                        placed = False
-                        for candidate_month in all_months:
-                            if candidate_month != month:
-                                candidate_has_expense = any(
-                                    self.classify_transaction(t) == category 
-                                    for t in self.monthly_transactions[candidate_month]
-                                )
-                                if not candidate_has_expense:
-                                    self.monthly_transactions[candidate_month].append(tx)
-                                    print(f"Redistributed {category} payment from {month} to {candidate_month}")
-                                    placed = True
-                                    break
-                        
-                        if not placed:
-                            # If no suitable month found, put it back
-                            self.monthly_transactions[month].append(tx)
-                            print(f"Could not redistribute {category} payment from {month} - no suitable target month found")
-    
     def run_analysis(self):
         """Run the complete expense analysis by month"""
         print("Starting bank statement analysis...")
@@ -447,10 +345,6 @@ class ExpenseAnalyzer:
         # Group transactions by month
         self.group_transactions_by_month()
         print(f"Found data for {len(self.monthly_transactions)} months")
-        
-        # Redistribute monthly recurring expenses
-        print("\nRedistributing monthly recurring expenses...")
-        self.redistribute_monthly_recurring()
         
         # Process each month separately
         for month in sorted(self.monthly_transactions.keys()):
