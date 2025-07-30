@@ -82,6 +82,11 @@ class ExpenseAnalyzer:
         csv_files = [f for f in os.listdir(self.statements_folder) if f.endswith('.CSV') or f.endswith('.csv')]
         
         for filename in csv_files:
+            # Parse multiplier from filename (e.g., "0.5x_account_name.csv")
+            multiplier = 1.0
+            multiplier_match = re.match(r'^(\d*\.?\d+)x_', filename)
+            if multiplier_match:
+                multiplier = float(multiplier_match.group(1))
             filepath = os.path.join(self.statements_folder, filename)
             print(f"Reading {filename}...")
             
@@ -134,6 +139,7 @@ class ExpenseAnalyzer:
                     transaction = self._parse_camt_v8_row(row)
                 
                 if transaction and transaction['amount'] < 0:  # Skip zero and positive amounts
+                    transaction['multiplier'] = multiplier
                     self.transactions.append(transaction)
 
     def _parse_camt_v8_row(self, row):
@@ -280,7 +286,7 @@ class ExpenseAnalyzer:
         category_totals = {}
         
         for category, transactions in self.categories.items():
-            total = sum(t['amount'] for t in transactions if t['amount'] < 0)
+            total = sum(t['amount'] * Decimal(t.get('multiplier', 1.0)) for t in transactions if t['amount'] < 0)
             if total < 0:  # Only include categories with expenses
                 category_totals[category] = float(abs(total))
         
@@ -291,11 +297,15 @@ class ExpenseAnalyzer:
         category_totals = {}
         
         for category, transactions in monthly_categories.items():
-            total = sum(t['amount'] for t in transactions if t['amount'] < 0)
+            total = sum(t['amount'] * Decimal(t.get('multiplier', 1.0)) for t in transactions if t['amount'] < 0)
             if total < 0:  # Only include categories with expenses
                 category_totals[category] = float(abs(total))
         
         return category_totals
+
+    def has_shared_accounts(self):
+        """Check if any transactions have multipliers < 1.0 (shared accounts)"""
+        return any(t.get('multiplier', 1.0) < 1.0 for t in self.transactions)
 
     def create_expense_chart(self, category_totals, month=None):
         """Create a pie chart of expense categories"""
@@ -355,7 +365,8 @@ class ExpenseAnalyzer:
                   bbox_to_anchor=(1, 0, 0.5, 1),
                   fontsize=10)
         
-        title = f'Expense Breakdown by Category - {month}' if month else 'Expense Breakdown by Category'
+        base_title = f'Expense Breakdown by Category - {month}' if month else 'Expense Breakdown by Category'
+        title = f'{base_title} (includes shared accounts)' if self.has_shared_accounts() else base_title
         plt.title(title, fontsize=16, fontweight='bold', pad=20)
         plt.axis('equal')
         
@@ -371,7 +382,8 @@ class ExpenseAnalyzer:
 
     def print_summary(self, category_totals, month=None):
         """Print summary of expenses by category"""
-        title = f"EXPENSE SUMMARY BY CATEGORY - {month}" if month else "EXPENSE SUMMARY BY CATEGORY"
+        base_title = f"EXPENSE SUMMARY BY CATEGORY - {month}" if month else "EXPENSE SUMMARY BY CATEGORY"
+        title = f"{base_title} (includes shared accounts)" if self.has_shared_accounts() else base_title
         print("\n" + "="*50)
         print(title)
         print("="*50)
