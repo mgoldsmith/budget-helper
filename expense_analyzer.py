@@ -39,10 +39,10 @@ class ExpenseAnalyzer:
                 "restaurant", "pizza", "burger", "wolt", "lieferando", "deliveroo",
                 "mcdonalds", "kfc", "subway", "doner", "döner", "cafe",
                 "bar", "pub", "borgor", "brgrs", "salami social", "nguyen", "nihat dincoglu", "harcourt centre",
-                "saigon com nieu", "asiagourmet", "panem garage", "koempul restau", "teegeback",
+                "saigon com nieu", "asiagourmet", "panem garage", "koempul restau", "teegeback", "kim sebastian",
             ],
             "household_items": [
-                "dm drogerie", "rossmann"
+                "dm drogerie", "rossmann", "obi", "ikea", "bauhaus",
             ],
             "pharmacy_health": [
                 "apotheke", "pharmacy", "arzt", "doctor",
