@@ -33,19 +33,21 @@ class ExpenseAnalyzer:
         self.category_keywords = {
             "groceries": [
                 "edeka", "rewe", "netto", "lidl", "aldi", "kaufland", "penny",
-                "supermarket", "grocery", "lebensmittel", "go asia",
+                "supermarket", "grocery", "lebensmittel", "go asia", "getränke hoffman", "trinkgut", "koro",
             ],
             "eating_out": [
                 "restaurant", "pizza", "burger", "wolt", "lieferando", "deliveroo",
                 "mcdonalds", "kfc", "subway", "doner", "döner", "cafe",
                 "bar", "pub", "borgor", "brgrs", "salami social", "nguyen", "nihat dincoglu", "harcourt centre",
+                "saigon com nieu", "asiagourmet", "panem garage", "koempul restau", "teegeback",
             ],
             "household_items": [
                 "dm drogerie", "rossmann"
             ],
             "pharmacy_health": [
                 "apotheke", "pharmacy", "arzt", "doctor",
-                "kranken", "health", "medical", "blanka leeker", "techniker krankenkasse"
+                "kranken", "health", "medical", "blanka leeker", "techniker krankenkasse",
+                "treatwell", "mikko karhulah", "buycycle",
             ],
             "rent_and_utilities": [
                 "miete", "rent", "wohnung", "apartment", "sev petten",
@@ -60,7 +62,7 @@ class ExpenseAnalyzer:
             ],
             "pet_care": [
                 "fressnapf", "tierarzt", "veterinary", "pet", "dog", "cat",
-                "hundesteuer", "tierbedarf", "drobeck", "getsafe",
+                "hundesteuer", "tierbedarf", "drobeck", "getsafe", "tierarztpraxis",
             ],
             "entertainment": [
                 "kino", "cinema", "spotify", "netflix", "concert", "ticket",
@@ -70,7 +72,8 @@ class ExpenseAnalyzer:
                 "entgeltabschluss", "gebühr", "fee", "bank charge", "commission"
             ],
             "shopping": [
-                "amazon", "zalando", "otto", "shop", "store", "koro", "online"
+                "amazon", "zalando", "otto", "shop", "store", "online",
+                "aliexpress",
             ],
         }
 
