@@ -33,7 +33,7 @@ class ExpenseAnalyzer:
         self.category_keywords = {
             "groceries": [
                 "edeka", "rewe", "netto", "lidl", "aldi", "kaufland", "penny",
-                "supermarket", "grocery", "lebensmittel", "go asia", "getränke hoffman", "trinkgut", "koro",
+                "supermarket", "grocery", "lebensmittel", "go asia", "hoffman", "trinkgut", "koro",
             ],
             "eating_out": [
                 "restaurant", "pizza", "burger", "wolt", "lieferando", "deliveroo",
@@ -54,7 +54,7 @@ class ExpenseAnalyzer:
                 "vattenfall", "strom", "gas", "water", "wasser", "heating", "heizung",
                 "electricity", "energie",
                 "telekom", "vodafone", "o2", "internet", "telefon", "phone", "mobile",
-                "1+1 telecom"
+                "1+1 telecom", "schufa", "squarespace",
             ],
             "transport": [
                 "bvg", "deutsche bahn", "db", "taxi", "uber", "lyft", "benzin",
@@ -66,10 +66,10 @@ class ExpenseAnalyzer:
             ],
             "entertainment": [
                 "kino", "cinema", "spotify", "netflix", "concert", "ticket",
-                "resident advisor", "club", "bar", "entertainment"
+                "resident advisor", "club", "bar", "entertainment", "else event",
             ],
             "bank_fees": [
-                "entgeltabschluss", "gebühr", "fee", "bank charge", "commission"
+                "entgeltabschluss", "gebühr", "fee", "bank charge", "commission", "balance of settlement",
             ],
             "shopping": [
                 "amazon", "zalando", "otto", "shop", "store", "online",
