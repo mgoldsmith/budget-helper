@@ -100,24 +100,86 @@ class ExpenseAnalyzer:
             if content is None:
                 print(f"Could not decode file {filename}")
                 continue
-                
-            # Parse CSV with semicolon delimiter
-            reader = csv.DictReader(content.splitlines(), delimiter=';')
+            
+            # Skip lines until we find the header row
+            lines = content.splitlines()
+            header_line_idx = 0
+            
+            for i, line in enumerate(lines):
+                # Look for Deutsche Bank format header
+                if 'Booking date' in line and 'Transaction Type' in line:
+                    header_line_idx = i
+                    break
+                # Look for existing format header
+                elif 'Buchungstag' in line:
+                    header_line_idx = i
+                    break
+            
+            # Parse CSV with semicolon delimiter starting from header
+            csv_lines = lines[header_line_idx:]
+            reader = csv.DictReader(csv_lines, delimiter=';')
             
             for row in reader:
-                # Extract key information
-                transaction = {
-                    'date': row.get('Buchungstag', ''),
-                    'description': row.get('Verwendungszweck', ''),
-                    'beneficiary': row.get('Beguenstigter/Zahlungspflichtiger', ''),
-                    'amount': self.parse_amount(row.get('Betrag', '0')),
-                    'currency': row.get('Waehrung', 'EUR'),
-                    'transaction_type': row.get('Buchungstext', ''),
-                    'raw_row': row
-                }
+                transaction = None
                 
-                if transaction['amount'] < 0:  # Skip zero and positive amounts
+                # Detect format and extract accordingly
+                if 'Booking date' in row:
+                    # Deutsche Bank format
+                    transaction = self._parse_deutsche_bank_row(row)
+                elif 'Buchungstag' in row:
+                    # Existing format
+                    transaction = self._parse_existing_format_row(row)
+                
+                if transaction and transaction['amount'] < 0:  # Skip zero and positive amounts
                     self.transactions.append(transaction)
+
+    def _parse_existing_format_row(self, row):
+        """Parse row in existing CSV format"""
+        return {
+            'date': row.get('Buchungstag', ''),
+            'description': row.get('Verwendungszweck', ''),
+            'beneficiary': row.get('Beguenstigter/Zahlungspflichtiger', ''),
+            'amount': self.parse_amount(row.get('Betrag', '0')),
+            'currency': row.get('Waehrung', 'EUR'),
+            'transaction_type': row.get('Buchungstext', ''),
+            'raw_row': row
+        }
+
+    def _parse_deutsche_bank_row(self, row):
+        """Parse row in Deutsche Bank CSV format"""
+        # Deutsche Bank uses separate Debit/Credit columns
+        debit = (row.get('Debit') or '').strip()
+        credit = (row.get('Credit') or '').strip()
+        
+        # Determine amount (negative for debits, positive for credits)
+        amount = Decimal('0')
+        if debit:
+            amount = self.parse_amount(debit)  # Deutsche Bank CSV already has negative values in debit
+        elif credit:
+            amount = self.parse_amount(credit)
+        
+        return {
+            'date': self._convert_deutsche_bank_date(row.get('Booking date', '')),
+            'description': row.get('Payment Details', ''),
+            'beneficiary': row.get('Beneficiary / Originator', ''),
+            'amount': amount,
+            'currency': row.get('Currency', 'EUR'),
+            'transaction_type': row.get('Transaction Type', ''),
+            'raw_row': row
+        }
+
+    def _convert_deutsche_bank_date(self, date_str):
+        """Convert Deutsche Bank date format (MM/DD/YYYY) to German format (DD.MM.YY)"""
+        if not date_str:
+            return ''
+        
+        try:
+            # Parse MM/DD/YYYY format
+            date_obj = datetime.strptime(date_str, '%m/%d/%Y')
+            # Convert to DD.MM.YY format to match existing code
+            return date_obj.strftime('%d.%m.%y')
+        except:
+            return date_str  # Return as-is if parsing fails
 
     def parse_amount(self, amount_str):
         """Parse German-style amount string to decimal"""
