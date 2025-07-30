@@ -110,7 +110,7 @@ class ExpenseAnalyzer:
                 if 'Booking date' in line and 'Transaction Type' in line:
                     header_line_idx = i
                     break
-                # Look for existing format header
+                # Look for CAMT V8 format header
                 elif 'Buchungstag' in line:
                     header_line_idx = i
                     break
@@ -127,14 +127,14 @@ class ExpenseAnalyzer:
                     # Deutsche Bank format
                     transaction = self._parse_deutsche_bank_row(row)
                 elif 'Buchungstag' in row:
-                    # Existing format
-                    transaction = self._parse_existing_format_row(row)
+                    # CAMT V8 format
+                    transaction = self._parse_camt_v8_row(row)
                 
                 if transaction and transaction['amount'] < 0:  # Skip zero and positive amounts
                     self.transactions.append(transaction)
 
-    def _parse_existing_format_row(self, row):
-        """Parse row in existing CSV format"""
+    def _parse_camt_v8_row(self, row):
+        """Parse row in CAMT V8 CSV format"""
         return {
             'date': row.get('Buchungstag', ''),
             'description': row.get('Verwendungszweck', ''),
