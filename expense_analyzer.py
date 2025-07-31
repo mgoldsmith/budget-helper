@@ -218,7 +218,6 @@ class ExpenseAnalyzer:
         needs_adjustment = False
         for keyword in self.end_of_month_keywords:
             if keyword.lower() in transaction_text(transaction):
-                print(transaction)
                 needs_adjustment = True
                 break
         if not needs_adjustment:
@@ -289,7 +288,7 @@ class ExpenseAnalyzer:
         category_totals = {}
         
         for category, transactions in self.categories.items():
-            total = sum(t['amount'] * Decimal(t.get('multiplier', 1.0)) for t in transactions if t['amount'] != 0)
+            total = sum(t['amount'] * Decimal(t.get('multiplier', 1.0)) for t in transactions)
             if total < 0:  # Only include categories with expenses
                 category_totals[category] = float(abs(total))
         
@@ -300,7 +299,7 @@ class ExpenseAnalyzer:
         category_totals = {}
         
         for category, transactions in monthly_categories.items():
-            total = sum(t['amount'] * Decimal(t.get('multiplier', 1.0)) for t in transactions if t['amount'] != 0)
+            total = sum(t['amount'] * Decimal(t.get('multiplier', 1.0)) for t in transactions)
             if total < 0:  # Only include categories with expenses
                 category_totals[category] = float(abs(total))
         
