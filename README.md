@@ -17,7 +17,7 @@ A Python tool for analyzing German bank statement CSV files and categorizing exp
    source venv/bin/activate
    ```
 
-2. Place your CSV bank statement files in the `statements/` folder
+2. Place your CSV bank statement files in the `statements/` folder. Supported formats include Sparkasse CAMT V8 and Deutsche Bank CSV.
    - For shared accounts, prefix the filename with the multiplier (e.g., `0.5x_joint_account.csv` for a 50/50 shared account)
    - Regular accounts use standard filenames (e.g., `personal_account.csv`)
 
