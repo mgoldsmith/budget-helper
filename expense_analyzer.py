@@ -42,6 +42,7 @@ class ExpenseAnalyzer:
                 "mcdonalds", "kfc", "subway", "doner", "döner", "cafe",
                 "bar", "pub", "borgor", "brgrs", "salami social", "nguyen", "nihat dincoglu", "harcourt centre",
                 "saigon com nieu", "asiagourmet", "panem garage", "koempul restau", "teegeback", "kim sebastian",
+                "vietnamese",
             ],
             "household_items": [
                 "dm drogerie", "rossmann", "obi", "ikea", "bauhaus",
@@ -49,7 +50,7 @@ class ExpenseAnalyzer:
             "pharmacy_health": [
                 "apotheke", "pharmacy", "arzt", "doctor",
                 "kranken", "health", "medical", "blanka leeker", "techniker krankenkasse",
-                "treatwell", "mikko karhulah", "buycycle",
+                "treatwell", "mikko karhulah", "buycycle", "bike",
             ],
             "rent_and_utilities": [
                 "miete", "rent", "wohnung", "apartment", "sev petten",
