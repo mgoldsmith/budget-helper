@@ -27,7 +27,9 @@ class ExpenseAnalyzer:
         self.monthly_transactions = defaultdict(list)
 
         # Keywords for end of month transactions. If they're detected in the first 7 days of a month, they'll be moved to the 25th of the previous month.
-        self.end_of_month_keywords = ["sev petten"]
+        self.end_of_month_keywords = ["sev petten", 
+                                      "van dijk", "cordele", "dylan scott",
+                                      ]
         
         # Category mapping based on keywords in German/English
         self.category_keywords = {
@@ -54,7 +56,7 @@ class ExpenseAnalyzer:
                 "vattenfall", "strom", "gas", "water", "wasser", "heating", "heizung",
                 "electricity", "energie",
                 "telekom", "vodafone", "o2", "internet", "telefon", "phone", "mobile",
-                "1+1 telecom", "schufa", "squarespace",
+                "1+1 telecom", "schufa", "squarespace", "van dijk", "cordele", "dylan scott"
             ],
             "transport": [
                 "bvg", "deutsche bahn", "db", "taxi", "uber", "lyft", "benzin",
@@ -138,7 +140,7 @@ class ExpenseAnalyzer:
                     # CAMT V8 format
                     transaction = self._parse_camt_v8_row(row)
                 
-                if transaction and transaction['amount'] < 0:  # Skip zero and positive amounts
+                if transaction and transaction['amount'] != 0:  # Skip zero amounts
                     transaction['multiplier'] = multiplier
                     self.transactions.append(transaction)
 
