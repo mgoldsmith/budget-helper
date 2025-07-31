@@ -163,11 +163,11 @@ class ExpenseAnalyzer:
         credit = (row.get('Credit') or '').strip()
         
         # Determine amount (negative for debits, positive for credits)
-        amount = Decimal('0')
-        if debit:
-            amount = self.parse_amount(debit)  # Deutsche Bank CSV already has negative values in debit
-        elif credit:
-            amount = self.parse_amount(credit)
+        amount = self.parse_amount(debit) + self.parse_amount(credit)
+        # if debit:
+        #     amount = self.parse_amount(debit)  # Deutsche Bank CSV already has negative values in debit
+        # elif credit:
+        #     amount = self.parse_amount(credit)
         
         return {
             'date': self._convert_deutsche_bank_date(row.get('Booking date', '')),
@@ -218,6 +218,7 @@ class ExpenseAnalyzer:
         needs_adjustment = False
         for keyword in self.end_of_month_keywords:
             if keyword.lower() in transaction_text(transaction):
+                print(transaction)
                 needs_adjustment = True
                 break
         if not needs_adjustment:
@@ -288,7 +289,7 @@ class ExpenseAnalyzer:
         category_totals = {}
         
         for category, transactions in self.categories.items():
-            total = sum(t['amount'] * Decimal(t.get('multiplier', 1.0)) for t in transactions if t['amount'] < 0)
+            total = sum(t['amount'] * Decimal(t.get('multiplier', 1.0)) for t in transactions if t['amount'] != 0)
             if total < 0:  # Only include categories with expenses
                 category_totals[category] = float(abs(total))
         
@@ -299,7 +300,7 @@ class ExpenseAnalyzer:
         category_totals = {}
         
         for category, transactions in monthly_categories.items():
-            total = sum(t['amount'] * Decimal(t.get('multiplier', 1.0)) for t in transactions if t['amount'] < 0)
+            total = sum(t['amount'] * Decimal(t.get('multiplier', 1.0)) for t in transactions if t['amount'] != 0)
             if total < 0:  # Only include categories with expenses
                 category_totals[category] = float(abs(total))
         
@@ -412,7 +413,7 @@ class ExpenseAnalyzer:
         print()
         
         # Only show expenses (negative amounts)
-        uncategorized_expenses = [t for t in self.uncategorized if t['amount'] < 0]
+        uncategorized_expenses = [t for t in self.uncategorized]
         
         for transaction in uncategorized_expenses:
             print(f"Date: {transaction['date']}")
@@ -431,7 +432,7 @@ class ExpenseAnalyzer:
         print()
         
         # Only show expenses (negative amounts)
-        uncategorized_expenses = [t for t in uncategorized_transactions if t['amount'] < 0]
+        uncategorized_expenses = [t for t in uncategorized_transactions]
         
         for transaction in uncategorized_expenses:
             print(f"Date: {transaction['date']}")
@@ -501,19 +502,18 @@ class ExpenseAnalyzer:
             print(f"\n{category.replace('_', ' ').upper()}:")
             print("-" * 40)
             
-            total = sum(abs(t['amount']) for t in transactions if t['amount'] < 0)
+            total = sum(abs(t['amount']) for t in transactions)
             print(f"Total: €{total:.2f} ({len(transactions)} transactions)")
             print()
             
             for transaction in transactions:
-                if transaction['amount'] < 0:  # Only show expenses
-                    print(f"  {transaction['date']} | €{abs(transaction['amount']):>7.2f} | {transaction['beneficiary'][:30]:<30} | {transaction['description'][:40]}")
+                print(f"  {transaction['date']} | €{transaction['amount']:>7.2f} | {transaction['beneficiary'][:30]:<30} | {transaction['description'][:40]}")
         
         # Print uncategorized
         if self.uncategorized:
             print(f"\nUNCATEGORIZED:")
             print("-" * 40)
-            uncategorized_expenses = [t for t in self.uncategorized if t['amount'] < 0]
+            uncategorized_expenses = [t for t in self.uncategorized]
             total = sum(abs(t['amount']) for t in uncategorized_expenses)
             print(f"Total: €{total:.2f} ({len(uncategorized_expenses)} transactions)")
             print()
